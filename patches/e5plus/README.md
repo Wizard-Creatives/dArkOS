@@ -25,6 +25,7 @@ here so the E5 Plus has a home that runs the full dArkOS userland
 | `kernel/0005-rk817-not-save-power-en.patch` | Honours the `not-save-power-en` property (set by the E5 Plus dts, and by the other RK3566 units' too): skip restoring RK817 POWER_EN on reboot. dArkMoss carries it for every unit; here it is applied for the E5 Plus only, so the unit runs the kernel it was brought up on. |
 | `rtl8733bs/*.patch` | Build Realtek's out-of-tree RTL8733BS driver (pinned commit, see `build_kernel-rk3566.sh`) for this kernel as `8733bs.ko`. |
 | `retroarch/retroarch-patch-0017-e5plus-rotate90.patch` | Turns RetroArch's RGA rotated build from 270 to 90 degrees for this panel (see below). |
+| `build-tools/` | Helpers for building the image on a PC, made for WSL2 and for agents driving it non-interactively. `e5plus-run.sh` is the entry point: `preflight` (can this host build it?), `smoke` (the E5 Plus kernel, patches and Wi-Fi driver only, 20-60 min), `build` / `status` / `stop` / `retry` (the full build in a detached tmux session; `status` decides success, which `make` cannot report), `verify` (mounts the finished image read-only and checks the E5 Plus files are in it) and `report`. |
 
 The kernel patches are applied for `UNIT=e5plus` only. The kernel tree
 (`main`) is reused between local builds, so `build_kernel-rk3566.sh` takes
