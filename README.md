@@ -27,6 +27,8 @@ access to over 64,000 packages you can install via the Debian Advanced Package T
      
 Now you should be able to just run make <device_name> to build for a supported device.  Example: `make rg353m`
 
+The GameMT E5 Plus (`make e5plus`) is a community port that carries its own device tree, kernel patches and Wi-Fi driver.  See [patches/e5plus/README.md](patches/e5plus/README.md) for what it includes and what still needs testing on hardware.
+
 **Notes**
 - To build on a different release of Debian, change the DEBIAN_CODE_NAME export in the Makefile or add DEBIAN_CODE_NAME=<release> as a variable to `make`.  Other debian code names can be found at https://www.debian.org/releases/
 - By default, this will build with both a 64bit and 32bit userspace.  This is primarily to support some 32bit ports available through PortMaster.  There are also some 32bit retroarch emulators available but the performance seems to be similar to the 64bit retroarch emulators at this point.

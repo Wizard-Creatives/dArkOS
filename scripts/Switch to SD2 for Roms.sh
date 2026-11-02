@@ -17,8 +17,9 @@ fi
 
 if [[ "$(tr -d '\0' < /proc/device-tree/compatible)" == *"rk3326"* ]]; then
   BLOCK="1"
-elif test ! -z "$(cat /home/ark/.config/.DEVICE | grep MINILOONG | tr -d '\0')"
+elif test ! -z "$(grep -E 'MINILOONG|E5PLUS' /home/ark/.config/.DEVICE | tr -d '\0')"
 then
+  # TF2 is on sdmmc2 on these units, so it enumerates as mmcblk3
   BLOCK="3"
 else
   BLOCK="2"

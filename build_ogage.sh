@@ -19,7 +19,7 @@ elif [[ "$UNIT" == *"353"* ]]; then
   branch="rg353v"
 elif [[ "$UNIT" == "503" ]]; then
   branch="rg503"
-elif [ "$UNIT" == "rk2023" ] || [ "$UNIT" == "rgb30" ] || [ "$UNIT" == "rgb20pro" ]; then
+elif [ "$UNIT" == "rk2023" ] || [ "$UNIT" == "rgb30" ] || [ "$UNIT" == "rgb20pro" ] || [ "$UNIT" == "e5plus" ]; then
   branch="rk2023"
 elif [[ "$UNIT" == "miniloong" ]]; then
   branch="miniloong"

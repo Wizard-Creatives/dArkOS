@@ -17,12 +17,20 @@ else
 fi
 
 # Build and install SDL2
+#
+# e5plus: its 720x1280 panel is mounted the other way round from the
+# Miniloong's, so it takes the Miniloong's RGA kmsdrm rotation patch (generic:
+# it rotates any DSI output and leaves HDMI alone) with ROT_270 turned into
+# ROT_90, matching fbcon=rotate:1.  Same file name, so the patch order is the
+# one the Miniloong build already proves.  The Miniloong cursor patch is
+# hard-coded to the 270 direction and is left out.
 if [ "$ARCH" == "arm-linux-gnueabihf" ]; then
   sudo chroot ${CHROOT_DIR}/ bash -c "source /root/.bashrc && cd /home/ark &&
     export CFLAGS=\"-Wno-error=int-conversion\" &&
     if [ ! -d ${CHIPSET}_core_builds ]; then git clone https://github.com/christianhaitian/${CHIPSET}_core_builds.git; fi &&
     cd ${CHIPSET}_core_builds &&
     if [[ ${UNIT} == *"miniloong"* ]]; then cp patches/${UNIT}/sdl2/*.patch patches/.; fi &&
+    if [[ ${UNIT} == "e5plus" ]]; then sed 's/HAL_TRANSFORM_ROT_270/HAL_TRANSFORM_ROT_90/' patches/miniloong/sdl2/sdl2-patch-0004-miniloong-rotate-kmsdrm.patch > patches/sdl2-patch-0004-miniloong-rotate-kmsdrm.patch && grep -q HAL_TRANSFORM_ROT_90 patches/sdl2-patch-0004-miniloong-rotate-kmsdrm.patch; fi &&
     chmod 777 builds-alt.sh &&
     eatmydata ./builds-alt.sh sdl2 &&
     cd SDL/${sub_folder} &&
@@ -33,6 +41,7 @@ else
     if [ ! -d ${CHIPSET}_core_builds ]; then git clone https://github.com/christianhaitian/${CHIPSET}_core_builds.git; fi &&
     cd ${CHIPSET}_core_builds &&
     if [[ ${UNIT} == *"miniloong"* ]]; then cp patches/${UNIT}/sdl2/*.patch patches/.; fi &&
+    if [[ ${UNIT} == "e5plus" ]]; then sed 's/HAL_TRANSFORM_ROT_270/HAL_TRANSFORM_ROT_90/' patches/miniloong/sdl2/sdl2-patch-0004-miniloong-rotate-kmsdrm.patch > patches/sdl2-patch-0004-miniloong-rotate-kmsdrm.patch && grep -q HAL_TRANSFORM_ROT_90 patches/sdl2-patch-0004-miniloong-rotate-kmsdrm.patch; fi &&
     chmod 777 builds-alt.sh &&
     eatmydata ./builds-alt.sh sdl2 &&
     cd SDL/build &&

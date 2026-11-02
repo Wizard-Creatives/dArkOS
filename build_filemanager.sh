@@ -13,7 +13,7 @@ elif [ "$UNIT" == "rg351v" ]; then
 elif [[ "$UNIT" == *"353"* ]] || [[ "$UNIT" == "rk2023" ]]; then
   BRANCH="rg351mp"
   DEVICE_CONFIG="rk3566"
-elif [[ "$UNIT" == *"503"* ]] || [[ "$UNIT" == "rgb30" ]] || [[ "$UNIT" == "rgb20pro" ]] || [[ "$UNIT" == "miniloong" ]]; then
+elif [[ "$UNIT" == *"503"* ]] || [[ "$UNIT" == "rgb30" ]] || [[ "$UNIT" == "rgb20pro" ]] || [[ "$UNIT" == "miniloong" ]] || [[ "$UNIT" == "e5plus" ]]; then
   BRANCH="ogs"
   DEVICE_CONFIG="rk3566"
 fi
@@ -21,6 +21,8 @@ call_chroot "cd /home/ark &&
   git clone --recursive https://github.com/christianhaitian/rs97-commander-sdl2.git -b ${BRANCH} &&
   cd rs97-commander-sdl2 &&
   if [[ ${UNIT} == \"rgb30\" ]]; then sed -i \"/SCREENW :/c\SCREENW :\= 720\" Makefile &&
+  sed -i \"/SCREENH :/c\SCREENH :\= 720\" Makefile; else echo \"\"; fi &&
+  if [[ ${UNIT} == \"e5plus\" ]]; then sed -i \"/SCREENW :/c\SCREENW :\= 1280\" Makefile &&
   sed -i \"/SCREENH :/c\SCREENH :\= 720\" Makefile; else echo \"\"; fi &&
   make -j$(nproc) &&
   strip DinguxCommander

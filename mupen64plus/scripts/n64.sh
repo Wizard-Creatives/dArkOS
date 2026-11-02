@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if compgen -G "/boot/rk3566-miniloong*"; then
+if compgen -G "/boot/rk3566-miniloong*" || compgen -G "/boot/rk3566-e5plus*"; then
   xres="$(cat /sys/class/graphics/fb0/modes | grep -o -P '(?<=:).*(?=p-)' | cut -dx -f2)"
   yres="$(cat /sys/class/graphics/fb0/modes | grep -o -P '(?<=:).*(?=p-)' | cut -dx -f1)"
 elif ! compgen -G "/boot/rk3326-odroidgo*"; then

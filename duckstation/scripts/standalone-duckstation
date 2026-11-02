@@ -29,9 +29,13 @@ ln -sf /opt/inttools/gamecontrollerdb.txt "$HOME/.local/share/gamecontrollerdb.t
 
 DEVICE="$(tr -d '\0' < /home/ark/.config/.DEVICE 2>/dev/null)"
 
-# Only apply to miniloong
+# Only apply to the units with a rotated panel (Miniloong: 270, E5 Plus: 90)
 case "$DEVICE" in
-  *miniloong*|*MINILOONG*)
+  *miniloong*|*MINILOONG*|*e5plus*|*E5PLUS*)
+    case "$DEVICE" in
+      *e5plus*|*E5PLUS*) PANEL_ROTATION="Rotate90" ;;
+      *)                 PANEL_ROTATION="Rotate270" ;;
+    esac
 	for status in /sys/class/drm/card*-HDMI-A-*/status; do
 	  [ -e "$status" ] || continue
 	  if grep -q disconnected "$status"; then
@@ -45,7 +49,7 @@ case "$DEVICE" in
     if [ "$HDMI_STATUS" = "connected" ]; then
       sed -i "/Rotation/c\Rotation \= 0" $HOME/.local/share/duckstation/settings.ini
     else
-      sed -i "/Rotation/c\Rotation \= Rotate270" $HOME/.local/share/duckstation/settings.ini
+      sed -i "/Rotation/c\Rotation \= ${PANEL_ROTATION}" $HOME/.local/share/duckstation/settings.ini
     fi
     ;;
   *)

@@ -4,10 +4,20 @@
 if [ -f "Arkbuild_package_cache/${CHIPSET}/retroarch_${UNIT}.tar.gz" ] && [ "$(cat Arkbuild_package_cache/${CHIPSET}/retroarch_${UNIT}.commit)" == "$(curl -s https://raw.githubusercontent.com/christianhaitian/${CHIPSET}_core_builds/refs/heads/master/scripts/retroarch.sh | grep -oP '(?<=tag=").*?(?=")')" ]; then
     sudo tar -xvzpf Arkbuild_package_cache/${CHIPSET}/retroarch_${UNIT}.tar.gz
 else
+	# e5plus: its panel is mounted the other way round from the Miniloong's, so
+	# the RGA rotated build (retroarch-rgarotated) has to turn the picture 90
+	# degrees instead of 270.  Stage patches/e5plus/retroarch for the build, and
+	# move the norotation patch's context to match so the second, unrotated
+	# build still applies.
+	if [ "$UNIT" == "e5plus" ]; then
+	  sudo mkdir -p Arkbuild/home/ark/e5plus_retroarch_patch
+	  sudo cp patches/e5plus/retroarch/*.patch Arkbuild/home/ark/e5plus_retroarch_patch/
+	fi
 	while true
 	do
 	  call_chroot "cd /home/ark &&
 		cd ${CHIPSET}_core_builds &&
+		if [[ ${UNIT} == \"e5plus\" ]]; then cp -f /home/ark/e5plus_retroarch_patch/*.patch patches/. && sed -i 's/GO2_ROTATION_DEGREES_270, 2);/GO2_ROTATION_DEGREES_90, 2);/' patches/retroarch-patch-0008-norotation-rga.patch; fi &&
 		chmod 777 builds-alt.sh &&
 		[ -d retroarch ] && rm -rf retroarch* || echo \"Cloning into retroarch\" &&
 		eatmydata ./builds-alt.sh retroarch
@@ -26,7 +36,7 @@ else
 	sudo mkdir -p Arkbuild/home/ark/.config/retroarch/autoconfig/udev
 	if [ "$UNIT" == "rgb10" ] || [ "$UNIT" == "rk2020" ]; then
 	  sudo cp -a Arkbuild/home/ark/${CHIPSET}_core_builds/retroarch64/retroarch.${CHIPSET}.rot Arkbuild/opt/retroarch/bin/retroarch
-	elif [ "$UNIT" == "miniloong" ]; then
+	elif [ "$UNIT" == "miniloong" ] || [ "$UNIT" == "e5plus" ]; then
 	  sudo cp -a Arkbuild/home/ark/${CHIPSET}_core_builds/retroarch64/retroarch-rgarotated Arkbuild/opt/retroarch/bin/retroarch
 	elif [ "$CHIPSET" == "rk3566" ]; then
 	  sudo cp -a Arkbuild/home/ark/${CHIPSET}_core_builds/retroarch64/retroarch Arkbuild/opt/retroarch/bin/retroarch
@@ -50,6 +60,7 @@ else
 	sudo curl -s https://raw.githubusercontent.com/christianhaitian/${CHIPSET}_core_builds/refs/heads/master/scripts/retroarch.sh | grep -oP '(?<=tag=").*?(?=")' > Arkbuild_package_cache/${CHIPSET}/retroarch_${UNIT}.commit
 fi
 sudo rm -rf Arkbuild/home/ark/${CHIPSET}_core_builds/retroarch/
+sudo rm -rf Arkbuild/home/ark/e5plus_retroarch_patch
 sudo cp retroarch/configs/retroarch.cfg.${UNIT} Arkbuild/home/ark/.config/retroarch/retroarch.cfg
 sudo cp retroarch/configs/retroarch.cfg.spectate Arkbuild/home/ark/.config/retroarch/retroarch.cfg.spectate
 if [ "$CHIPSET" == "rk3566" ]; then
@@ -204,11 +215,17 @@ if [[ "${BUILD_ARMHF}" == "y" ]]; then
 	else
 		setup_arkbuild32
 		sudo chroot Arkbuild32/ mkdir -p /home/ark
+		# e5plus: the same 90 degree rotation as the 64bit build above.
+		if [ "$UNIT" == "e5plus" ]; then
+		  sudo mkdir -p Arkbuild32/home/ark/e5plus_retroarch_patch
+		  sudo cp patches/e5plus/retroarch/*.patch Arkbuild32/home/ark/e5plus_retroarch_patch/
+		fi
 		while true
 		do
 		  call_chroot32 "cd /home/ark &&
 			if [ ! -d ${CHIPSET}_core_builds ]; then git clone https://github.com/christianhaitian/${CHIPSET}_core_builds.git; fi &&
 			cd ${CHIPSET}_core_builds &&
+			if [[ ${UNIT} == \"e5plus\" ]]; then cp -f /home/ark/e5plus_retroarch_patch/*.patch patches/. && sed -i 's/GO2_ROTATION_DEGREES_270, 2);/GO2_ROTATION_DEGREES_90, 2);/' patches/retroarch-patch-0008-norotation-rga.patch; fi &&
 			chmod 777 builds-alt.sh &&
 			[ -d retroarch ] && rm -rf retroarch* || echo \"Cloning into retroarch\" &&
 			./builds-alt.sh retroarch
@@ -225,7 +242,7 @@ if [[ "${BUILD_ARMHF}" == "y" ]]; then
 		sudo mkdir -p Arkbuild/home/ark/.config/retroarch32/autoconfig/udev
 		if [ "$UNIT" == "rgb10" ] || [ "$UNIT" == "rk2020" ]; then
 		  sudo cp Arkbuild32/home/ark/${CHIPSET}_core_builds/retroarch32/retroarch32.${CHIPSET}.rot Arkbuild/opt/retroarch/bin/retroarch32
-		elif [ "$UNIT" == "miniloong" ]; then
+		elif [ "$UNIT" == "miniloong" ] || [ "$UNIT" == "e5plus" ]; then
 		  sudo cp Arkbuild32/home/ark/${CHIPSET}_core_builds/retroarch32/retroarch32-rgarotated Arkbuild/opt/retroarch/bin/retroarch32
 		elif [ "$CHIPSET" == "rk3566" ]; then
 		  sudo cp Arkbuild32/home/ark/${CHIPSET}_core_builds/retroarch32/retroarch32 Arkbuild/opt/retroarch/bin/retroarch32
