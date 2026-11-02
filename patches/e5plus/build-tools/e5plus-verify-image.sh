@@ -50,8 +50,16 @@ have "$R/usr/lib/firmware/rtl_bt/rtl8723fs_fw.bin" "Bluetooth firmware rtl8723fs
 have "$R/usr/lib/firmware/rtl_bt/rtl8723fs_config.bin" "Bluetooth firmware rtl8723fs_config.bin"
 
 echo "E5 Plus services and tools"
+# systemctl enable makes absolute symlinks (-> /etc/systemd/system/...), which
+# on a mounted image would resolve on this host: check the link and the unit
+# inside the image instead of following it.
 for s in e5plus-lights e5plus-jackd e5plus-offcharge; do
-  have "$R/etc/systemd/system/multi-user.target.wants/$s.service" "$s.service enabled"
+  l="$R/etc/systemd/system/multi-user.target.wants/$s.service"
+  if [ -L "$l" ] || [ -f "$l" ]; then
+    if [ -f "$R/etc/systemd/system/$s.service" ]; then pass "$s.service enabled"; else fail "$s.service enabled, but etc/systemd/system/$s.service is missing"; fi
+  else
+    fail "$s.service not enabled (no multi-user.target.wants/$s.service)"
+  fi
 done
 have "$R/usr/local/bin/e5plus-lights.sh" "e5plus-lights.sh"
 have "$R/usr/local/bin/e5plus-audio-path.sh" "e5plus-audio-path.sh"
@@ -60,7 +68,11 @@ have "$R/usr/local/share/e5plus-offcharge/battery_5.bmp" "charging screen images
 have "$R/opt/system/Joystick Lights.sh" "Options > Joystick Lights"
 dev=$(tr -d '\0\r\n' < "$R/home/ark/.config/.DEVICE" 2>/dev/null)
 [ "$dev" = "E5PLUS" ] && pass ".DEVICE is E5PLUS" || fail ".DEVICE is '$dev', expected E5PLUS"
-if grep -qs "headphone-audio-switch" "$R"/var/spool/cron/crontabs/root; then
+# root's crontab is 0600 in a 1730 directory: read it with sudo
+c="$R/var/spool/cron/crontabs/root"
+if ! sudo test -f "$c"; then
+  fail "root's crontab is missing (the boot-time @reboot jobs would not run)"
+elif sudo grep -qs "headphone-audio-switch" "$c"; then
   fail "headphone-audio-switch.sh is in root's crontab (should be off on the E5 Plus)"
 else
   pass "headphone-audio-switch.sh not scheduled (e5plus-jackd does it)"

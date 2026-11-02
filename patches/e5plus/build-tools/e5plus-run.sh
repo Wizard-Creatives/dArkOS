@@ -19,6 +19,7 @@ set -u
 TOOLS="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 REPO="$(cd "$TOOLS/../../.." && pwd)"
 STAMP="$HOME/.e5plus-build-started"
+ARGSFILE="$HOME/.e5plus-build-args"   # BUILD_ARGS of the last build, reused by retry
 FATAL='Exiting build with return code|Failed to resize Arkbuild|ERROR: .*did not apply|ERROR: the RTL8733BS driver did not build|ERROR: could not take'
 
 ensure_binfmt() {
@@ -48,10 +49,16 @@ start_build() {
     rm -f dArkOS_E5PLUS_*.img dArkOS_E5PLUS_*.img.7z*
   fi
   date '+%s' > "$STAMP"
+  printf '%s\n' "${BUILD_ARGS:-}" > "$ARGSFILE"
   tmux new-session -d -s darkos -c "$REPO" \
     "make e5plus ${BUILD_ARGS:-}; echo; echo 'make e5plus exited. That does not mean it worked: run ~/e5plus-run.sh status'; exec bash"
-  sleep 3
-  if building; then echo "Build started in tmux session 'darkos'. Check it with: ~/e5plus-run.sh status"; else echo "The build did not start:"; tmux capture-pane -p -t darkos | tail -n 20; exit 1; fi
+  # The Makefile sleeps 5 s before it runs build_e5plus.sh: wait up to a minute.
+  for _ in $(seq 30); do building && break; sleep 2; done
+  if building; then
+    echo "Build started in tmux session 'darkos'${BUILD_ARGS:+ with $BUILD_ARGS}. Check it with: ~/e5plus-run.sh status"
+  else
+    echo "The build did not start:"; tmux capture-pane -p -t darkos 2>/dev/null | tail -n 20; exit 1
+  fi
 }
 
 stop_build() {
@@ -78,7 +85,10 @@ case "${1:-}" in
     ;;
   build) start_build ;;
   stop)  stop_build ;;
-  retry) stop_build; start_build ;;
+  retry)
+    # same make variables as the build being retried, unless BUILD_ARGS is given
+    BUILD_ARGS="${BUILD_ARGS-$(cat "$ARGSFILE" 2>/dev/null)}"
+    stop_build; start_build ;;
   status)
     log="$REPO/build.log"
     if building; then
